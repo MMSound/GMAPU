@@ -1,12 +1,12 @@
 {
   "$GMScript":"",
-  "%Name":"fnsGMAPU",
+  "%Name":"fnsMath",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"fnsGMAPU",
+  "name":"fnsMath",
   "parent":{
-    "name":"GMAPU",
-    "path":"folders/GMAPU.yy",
+    "name":"Misc",
+    "path":"folders/Misc.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

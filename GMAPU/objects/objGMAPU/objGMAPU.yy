@@ -13,7 +13,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"GMAPU",
-    "path":"GMAPU.yyp",
+    "path":"folders/GMAPU.yy",
   },
   "parentObjectId":null,
   "persistent":true,

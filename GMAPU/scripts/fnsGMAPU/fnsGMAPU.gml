@@ -1,10 +1,5 @@
 //GMAPU - sequenced audio in pure GML by MiniMacro Sound
 
-//system macros
-#macro GMAPU_CHANNEL_PRIORITY 0 //the starting priority channel of GMAPU
-#macro GMAPU_CHANNEL_COUNT 4 //the amount of channels dedicated to GMAPU
-#macro GMAPU_TIME_DEPTH 72 //the amount of repetitions before GMAPU resets the time source - must be larger than 5 (NOTE: maybe make this depend on the length of the song?)
-
 //note macros
 #macro nC_0 0.12
 #macro nCs0 0.13
@@ -101,6 +96,16 @@ enum __GMAPU_SONG_DATA
 	INSTRUMENT,
 	SOUNDID,
 	GAIN,
+	FADE,
+	PITCH,
+	LENGTH
+}
+
+enum __GMAPU_TRACK_DATA
+{
+	SPEED,
+	LOOP,
+	LENGTH
 }
 
 /// @description call in the beginning of your game if you don't just want to place the object in the room
@@ -147,7 +152,6 @@ function GMAPU_playback_start(_song = noone)
 }
 
 /// @description pause and resume the current song
-/// WRITE DOCS LATER
 function GMAPU_playback_pause(_pause = -1)
 {
 	with (objGMAPU)
@@ -196,7 +200,7 @@ function GMAPU_playback_stop()
 	}
 }
 
-/// @description clear GMAPU
+/// @description call when GMAPU needs to be cleaned (at the end of your game, or right before you reset - this will prevent the time source that drives the system from glitching)
 function GMAPU_destroy()
 {
 	with (objGMAPU)
@@ -209,7 +213,7 @@ function GMAPU_destroy()
 	}
 }
 
-// INTERNAL FUNCTIONS (don't call outside of objGMAPU or scripts for using it)
+// INTERNAL FUNCTIONS (don't call outside of objGMAPU or functions for using it)
 
 /// @description init the song clock
 function __GMAPU_init_song_clock(_start = true)
@@ -223,33 +227,43 @@ function __GMAPU_init_song_clock(_start = true)
 }
 
 /// @description plays a note
-function __GMAPU_play_note(_note, _inst, _channel = 0, _gain = 1.0)
+function __GMAPU_play_note(_note, _inst, _channel = 0, _gain = 1.0, _fade = noone, _pitch = 0)
 {
-	if (_note != n___)
+	with (objGMAPU)
 	{
+		if (_note == n___)
+		{
+			return __channelInfo[_channel];
+		}
+	
 		if (audio_is_playing(__channelInfo[_channel][__GMAPU_SONG_DATA.SOUNDID]))
 		{
 			audio_stop_sound(__channelInfo[_channel][__GMAPU_SONG_DATA.SOUNDID]);
 		}
-		if (_note != nOFF)
+	
+		if (_note == nOFF)
 		{
-			var _played = audio_play_sound(_inst.__soundID, (GMAPU_CHANNEL_PRIORITY + _channel), _inst.__loops);
-			audio_sound_pitch(_played, _note);
-			audio_sound_gain(_played, (_gain * __songVolume), 0);
-			if (_inst.__loops)
-			{
-				audio_sound_loop_start(_played, _inst.__loopStart);
-				audio_sound_loop_end(_played, _inst.__loopEnd);
-			}
-			
-			return [_note, _inst, _played, _gain];
+			return [nOFF, -1, -1, 0, -1, 0];
 		}
-		else
+	
+		var _played = audio_play_sound(_inst.__soundID, (GMAPU_CHANNEL_PRIORITY + _channel), _inst.__loops);
+		audio_sound_pitch(_played, (_note + _pitch));
+		audio_sound_gain(_played, (_gain * __songVolume), 0);
+	
+		//EFFECTS PROCESSING PART 2 - taking the data we got from __GMAPU_update() and applying it to new notes
+		if (_fade != noone)
 		{
-			return [nOFF, -1, -1, 0];
+			audio_sound_gain(_played, (_fade[0] * __songVolume), _fade[1]);
 		}
+	
+		if (_inst.__loops)
+		{
+			audio_sound_loop_start(_played, _inst.__loopStart);
+			audio_sound_loop_end(_played, _inst.__loopEnd);
+		}
+	
+		return [_note, _inst, _played, _gain, _fade, _pitch];
 	}
-	return __channelInfo[_channel];
 }
 
 /// @description advance 1 step in the currently playing song
@@ -268,10 +282,13 @@ function __GMAPU_update()
 		for (var i = 0; i < _length; i++)
 		{
 			var _current = __channelInfo[i];
-			var _note = __songData[__songStep][i + 1][__GMAPU_SONG_DATA.NOTE];
+			var _note = __songData[__songStep][i + 1][__GMAPU_SONG_DATA.NOTE]; //we're using i + 1 here because the first index of the song data array is for tempo data
 			var _inst = __songData[__songStep][i + 1][__GMAPU_SONG_DATA.INSTRUMENT];
 			var _gain = __songData[__songStep][i + 1][__GMAPU_SONG_DATA.GAIN];
-		
+			var _fade = __songData[__songStep][i + 1][__GMAPU_SONG_DATA.FADE];
+			var _pitch = __songData[__songStep][i + 1][__GMAPU_SONG_DATA.PITCH];
+			
+			//EFFECTS PROCESSING PART 1 - turning them into usable data, and processing them on rows where there's not a new note
 			if (_inst == -1) //-1 can be used in these parameters to repeat what was already there
 			{
 				_inst = _current[__GMAPU_SONG_DATA.INSTRUMENT];
@@ -292,13 +309,29 @@ function __GMAPU_update()
 				}
 				__channelInfo[i][__GMAPU_SONG_DATA.GAIN] = _gain;
 			}
-		
-			__channelInfo[i] = __GMAPU_play_note(_note, _inst, i, _gain); //we're using i + 1 here because the first index of the song data array is for tempo data
+			
+			if (_fade == -1)
+			{
+				_fade = noone;
+			}
+			else
+			{
+				if (_note == n___)
+				{
+					if (audio_is_playing(_current[__GMAPU_SONG_DATA.SOUNDID]))
+					{
+						audio_sound_gain(_current[__GMAPU_SONG_DATA.SOUNDID], _fade[0], _fade[1]);
+					}
+				}
+				__channelInfo[i][__GMAPU_SONG_DATA.FADE] = _fade;				
+			}
+			
+			__channelInfo[i] = __GMAPU_play_note(_note, _inst, i, _gain, _fade, _pitch);
 		}
 
-		if (__songData[__songStep][0] != -1) //changing song speed mid-song
+		if (__songData[__songStep][0][__GMAPU_TRACK_DATA.SPEED] != -1) //changing song speed mid-song
 		{
-			__songSpeed = __songData[__songStep][0];
+			__songSpeed = __songData[__songStep][0][__GMAPU_TRACK_DATA.SPEED];
 			time_source_reconfigure(__songClock, (__songSpeed / 60), time_source_units_seconds, __GMAPU_update, [], (array_length(__songData) - __songStep), time_source_expire_after);
 			time_source_start(__songClock);
 		}
@@ -309,7 +342,8 @@ function __GMAPU_update()
 			time_source_start(__songClock);
 		}
 		
-		__songStep = ((__songStep + 1) % array_length(__songData));
+		var _loop = __songData[__songStep][0][__GMAPU_TRACK_DATA.LOOP];
+		__songStep = (_loop == -1 ? ((__songStep + 1) % array_length(__songData)) : _loop);
 	}
 }
 
@@ -321,103 +355,99 @@ function __Instrument(_sound, _loopStart = -1, _loopEnd = -1) constructor
 	__loops = ((_loopStart != -1) && (_loopEnd != -1));
 	__loopStart = _loopStart;
 	__loopEnd = _loopEnd;
-	
-	//static functions down here
 }
 
 // FUN STUFF
 
+/// @description not super well coded, and frankly also not necessary for proper function, but it can be used for neat visualizations
 function __GMAPU_get_note_name(_note)
 {
-	switch (_note)
-	{
-		default: return "   "; break;
-		case 0.12: return "C-0"; break;
-		case 0.13: return "C#0"; break;
-		case 0.14: return "D-0"; break;
-		case 0.15: return "D#0"; break;
-		case 0.16: return "E-0"; break;
-		case 0.17: return "F-0"; break;
-		case 0.18: return "F#0"; break;
-		case 0.19: return "G-0"; break;
-		case 0.20: return "G#0"; break;
-		case 0.21: return "A-0"; break;
-		case 0.22: return "A#0"; break;
-		case 0.24: return "B-0"; break;
-		case 0.25: return "C-1"; break;
-		case 0.27: return "C#1"; break;
-		case 0.28: return "D-1"; break;
-		case 0.30: return "D#1"; break;
-		case 0.32: return "E-1"; break;
-		case 0.33: return "F-1"; break;
-		case 0.35: return "F#1"; break;
-		case 0.37: return "G-1"; break;
-		case 0.40: return "G#1"; break;
-		case 0.42: return "A-1"; break;
-		case 0.45: return "A#1"; break;
-		case 0.47: return "B-1"; break;
-		case 0.50: return "C-2"; break;
-		case 0.53: return "C#2"; break;
-		case 0.56: return "D-2"; break;
-		case 0.60: return "D#2"; break;
-		case 0.63: return "E-2"; break;
-		case 0.67: return "F-2"; break;
-		case 0.71: return "F#2"; break;
-		case 0.75: return "G-2"; break;
-		case 0.80: return "G#2"; break;
-		case 0.85: return "A-2"; break;
-		case 0.90: return "A#2"; break;
-		case 0.95: return "B-2"; break;
-		case 1.00: return "C-3"; break;
-		case 1.06: return "C#3"; break;
-		case 1.12: return "D-3"; break;
-		case 1.19: return "D#3"; break;
-		case 1.27: return "E-3"; break;
-		case 1.34: return "F-3"; break;
-		case 1.42: return "F#3"; break;
-		case 1.50: return "G-3"; break;
-		case 1.59: return "G#3"; break;
-		case 1.69: return "A-3"; break;
-		case 1.79: return "A#3"; break;
-		case 1.90: return "B-3"; break;
-		case 2.00: return "C-4"; break;
-		case 2.12: return "C#4"; break;
-		case 2.26: return "D-4"; break;
-		case 2.38: return "D#4"; break;
-		case 2.52: return "E-4"; break;
-		case 2.68: return "F-4"; break;
-		case 2.84: return "F#4"; break;
-		case 3.00: return "G-4"; break;
-		case 3.18: return "G#4"; break;
-		case 3.38: return "A-4"; break;
-		case 3.57: return "A#4"; break;
-		case 3.79: return "B-4"; break;
-		case 4.00: return "C-5"; break;
-		case 4.24: return "C#5"; break;
-		case 4.51: return "D-5"; break;
-		case 4.76: return "D#5"; break;
-		case 5.04: return "E-5"; break;
-		case 5.36: return "F-5"; break;
-		case 5.64: return "F#5"; break;
-		case 6.04: return "G-5"; break;
-		case 6.40: return "G#5"; break;
-		case 6.70: return "A-5"; break;
-		case 7.14: return "A#5"; break;
-		case 7.52: return "B-5"; break;
-		case 8.09: return "C-6"; break;
-		case 8.57: return "C#6"; break;
-		case 8.93: return "D-6"; break;
-		case 9.53: return "D#6"; break;
-		case 10.21: return "E-6"; break;
-		case 10.72: return "F-6"; break;
-		case 11.28: return "F#6"; break;
-		case 11.91: return "G-6"; break;
-		case 12.61: return "G#6"; break;
-		case 13.39: return "A-6"; break;
-		case 14.29: return "A#6"; break;
-		case 15.31: return "B-6"; break;
-		case 15.88: return "C-7"; break;
-		case 72: return "---"; break;
-		case 64: return "   "; break;
-	}
+	if (_note <= 0.12) return "C-0";
+	else if (_note <= 0.13) return "C#0";
+	else if (_note <= 0.14) return "D-0";
+	else if (_note <= 0.15) return "D#0";
+	else if (_note <= 0.16) return "E-0";
+	else if (_note <= 0.17) return "F-0";
+	else if (_note <= 0.18) return "F#0";
+	else if (_note <= 0.19) return "G-0";
+	else if (_note <= 0.20) return "G#0";
+	else if (_note <= 0.21) return "A-0";
+	else if (_note <= 0.22) return "A#0";
+	else if (_note <= 0.24) return "B-0";
+	else if (_note <= 0.25) return "C-1";
+	else if (_note <= 0.27) return "C#1";
+	else if (_note <= 0.28) return "D-1";
+	else if (_note <= 0.30) return "D#1";
+	else if (_note <= 0.32) return "E-1";
+	else if (_note <= 0.33) return "F-1";
+	else if (_note <= 0.35) return "F#1";
+	else if (_note <= 0.37) return "G-1";
+	else if (_note <= 0.40) return "G#1";
+	else if (_note <= 0.42) return "A-1";
+	else if (_note <= 0.45) return "A#1";
+	else if (_note <= 0.47) return "B-1";
+	else if (_note <= 0.50) return "C-2";
+	else if (_note <= 0.53) return "C#2";
+	else if (_note <= 0.56) return "D-2";
+	else if (_note <= 0.60) return "D#2";
+	else if (_note <= 0.63) return "E-2";
+	else if (_note <= 0.67) return "F-2";
+	else if (_note <= 0.71) return "F#2";
+	else if (_note <= 0.75) return "G-2";
+	else if (_note <= 0.80) return "G#2";
+	else if (_note <= 0.85) return "A-2";
+	else if (_note <= 0.90) return "A#2";
+	else if (_note <= 0.95) return "B-2";
+	else if (_note <= 1.00) return "C-3";
+	else if (_note <= 1.06) return "C#3";
+	else if (_note <= 1.12) return "D-3";
+	else if (_note <= 1.19) return "D#3";
+	else if (_note <= 1.27) return "E-3";
+	else if (_note <= 1.34) return "F-3";
+	else if (_note <= 1.42) return "F#3";
+	else if (_note <= 1.50) return "G-3";
+	else if (_note <= 1.59) return "G#3";
+	else if (_note <= 1.69) return "A-3";
+	else if (_note <= 1.79) return "A#3";
+	else if (_note <= 1.90) return "B-3";
+	else if (_note <= 2.00) return "C-4";
+	else if (_note <= 2.12) return "C#4";
+	else if (_note <= 2.26) return "D-4";
+	else if (_note <= 2.38) return "D#4";
+	else if (_note <= 2.52) return "E-4";
+	else if (_note <= 2.68) return "F-4";
+	else if (_note <= 2.84) return "F#4";
+	else if (_note <= 3.00) return "G-4";
+	else if (_note <= 3.18) return "G#4";
+	else if (_note <= 3.38) return "A-4";
+	else if (_note <= 3.57) return "A#4";
+	else if (_note <= 3.79) return "B-4";
+	else if (_note <= 4.00) return "C-5";
+	else if (_note <= 4.24) return "C#5";
+	else if (_note <= 4.51) return "D-5";
+	else if (_note <= 4.76) return "D#5";
+	else if (_note <= 5.04) return "E-5";
+	else if (_note <= 5.36) return "F-5";
+	else if (_note <= 5.64) return "F#5";
+	else if (_note <= 6.04) return "G-5";
+	else if (_note <= 6.40) return "G#5";
+	else if (_note <= 6.70) return "A-5";
+	else if (_note <= 7.14) return "A#5";
+	else if (_note <= 7.52) return "B-5";
+	else if (_note <= 8.09) return "C-6";
+	else if (_note <= 8.57) return "C#6";
+	else if (_note <= 8.93) return "D-6";
+	else if (_note <= 9.53) return "D#6";
+	else if (_note <= 10.21) return "E-6";
+	else if (_note <= 10.72) return "F-6";
+	else if (_note <= 11.28) return "F#6";
+	else if (_note <= 11.91) return "G-6";
+	else if (_note <= 12.61) return "G#6";
+	else if (_note <= 13.39) return "A-6";
+	else if (_note <= 14.29) return "A#6";
+	else if (_note <= 15.31) return "B-6";
+	else if (_note <= 15.88) return "C-7";
+	else if (_note == 72) return "---";
+	else if (_note == 64) return "   ";
+	else return "   ";
 }

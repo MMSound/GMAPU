@@ -12,8 +12,8 @@
   "duration":5.137415,
   "name":"smpPiano",
   "parent":{
-    "name":"GMAPU",
-    "path":"GMAPU.yyp",
+    "name":"Instrument Samples",
+    "path":"folders/GMAPU/Instrument Samples.yy",
   },
   "preload":false,
   "resourceType":"GMSound",

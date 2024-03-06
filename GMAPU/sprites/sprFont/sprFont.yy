@@ -68,8 +68,8 @@
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"GMAPU",
-    "path":"GMAPU.yyp",
+    "name":"Misc",
+    "path":"folders/Misc.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

@@ -6,7 +6,7 @@
   "name":"fnsGMAPUMusic",
   "parent":{
     "name":"GMAPU",
-    "path":"GMAPU.yyp",
+    "path":"folders/GMAPU.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

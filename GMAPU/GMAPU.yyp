@@ -9,7 +9,11 @@
     "name":"Default",
   },
   "defaultScriptType":1,
-  "Folders":[],
+  "Folders":[
+    {"$GMFolder":"","%Name":"GMAPU","folderPath":"folders/GMAPU.yy","name":"GMAPU","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"Instrument Samples","folderPath":"folders/GMAPU/Instrument Samples.yy","name":"Instrument Samples","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"Misc","folderPath":"folders/Misc.yy","name":"Misc","resourceType":"GMFolder","resourceVersion":"2.0",},
+  ],
   "IncludedFiles":[],
   "isEcma":false,
   "LibraryEmitters":[],
@@ -20,9 +24,10 @@
   "resources":[
     {"id":{"name":"objGMAPU","path":"objects/objGMAPU/objGMAPU.yy",},},
     {"id":{"name":"objInit","path":"objects/objInit/objInit.yy",},},
-    {"id":{"name":"rmTesting","path":"rooms/rmTesting/rmTesting.yy",},},
+    {"id":{"name":"rmMain","path":"rooms/rmMain/rmMain.yy",},},
     {"id":{"name":"fnsGMAPU","path":"scripts/fnsGMAPU/fnsGMAPU.yy",},},
     {"id":{"name":"fnsGMAPUMusic","path":"scripts/fnsGMAPUMusic/fnsGMAPUMusic.yy",},},
+    {"id":{"name":"fnsMath","path":"scripts/fnsMath/fnsMath.yy",},},
     {"id":{"name":"smpPiano","path":"sounds/smpPiano/smpPiano.yy",},},
     {"id":{"name":"smpPulse125","path":"sounds/smpPulse125/smpPulse125.yy",},},
     {"id":{"name":"sprFont","path":"sprites/sprFont/sprFont.yy",},},
@@ -30,7 +35,7 @@
   "resourceType":"GMProject",
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
-    {"roomId":{"name":"rmTesting","path":"rooms/rmTesting/rmTesting.yy",},},
+    {"roomId":{"name":"rmMain","path":"rooms/rmMain/rmMain.yy",},},
   ],
   "templateType":"game",
   "TextureGroups":[

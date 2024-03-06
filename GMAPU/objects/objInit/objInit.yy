@@ -8,8 +8,8 @@
   "name":"objInit",
   "overriddenProperties":[],
   "parent":{
-    "name":"GMAPU",
-    "path":"GMAPU.yyp",
+    "name":"Misc",
+    "path":"folders/Misc.yy",
   },
   "parentObjectId":null,
   "persistent":false,
