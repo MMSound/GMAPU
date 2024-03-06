@@ -117,6 +117,16 @@ function GMAPU_playback_start(_song = noone)
 {
 	with (objGMAPU)
 	{
+		if (_song != noone)
+		{
+			__songData = _song();
+		}
+		else
+		{
+			show_message("GMAPU - No song specified!");
+			exit;
+		}
+		
 		for (var i = 0; i < array_length(__channelInfo); i++)
 		{
 			audio_stop_sound(__channelInfo[i][__GMAPU_SONG_DATA.SOUNDID]);

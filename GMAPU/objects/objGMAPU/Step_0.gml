@@ -3,7 +3,7 @@ if (keyboard_check_pressed(vk_space))
 {
 	if (!__playing)
 	{
-		GMAPU_playback_start();
+		GMAPU_playback_start(musTest2);
 	}
 	else
 	{

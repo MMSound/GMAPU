@@ -18,10 +18,11 @@
   },
   "name":"GMAPU",
   "resources":[
-    {"id":{"name":"objInit","path":"objects/objInit/objInit.yy",},},
     {"id":{"name":"objGMAPU","path":"objects/objGMAPU/objGMAPU.yy",},},
+    {"id":{"name":"objInit","path":"objects/objInit/objInit.yy",},},
     {"id":{"name":"rmTesting","path":"rooms/rmTesting/rmTesting.yy",},},
     {"id":{"name":"fnsGMAPU","path":"scripts/fnsGMAPU/fnsGMAPU.yy",},},
+    {"id":{"name":"fnsGMAPUMusic","path":"scripts/fnsGMAPUMusic/fnsGMAPUMusic.yy",},},
     {"id":{"name":"smpPiano","path":"sounds/smpPiano/smpPiano.yy",},},
     {"id":{"name":"smpPulse125","path":"sounds/smpPulse125/smpPulse125.yy",},},
     {"id":{"name":"sprFont","path":"sprites/sprFont/sprFont.yy",},},

@@ -1,9 +1,10 @@
 {
   "FolderOrderSettings":[],
   "ResourceOrderSettings":[
-    {"name":"objInit","order":8,"path":"objects/objInit/objInit.yy",},
     {"name":"objGMAPU","order":1,"path":"objects/objGMAPU/objGMAPU.yy",},
+    {"name":"objInit","order":8,"path":"objects/objInit/objInit.yy",},
     {"name":"fnsGMAPU","order":3,"path":"scripts/fnsGMAPU/fnsGMAPU.yy",},
+    {"name":"fnsGMAPUMusic","order":9,"path":"scripts/fnsGMAPUMusic/fnsGMAPUMusic.yy",},
     {"name":"smpPiano","order":6,"path":"sounds/smpPiano/smpPiano.yy",},
     {"name":"smpPulse125","order":2,"path":"sounds/smpPulse125/smpPulse125.yy",},
     {"name":"sprFont","order":7,"path":"sprites/sprFont/sprFont.yy",},
