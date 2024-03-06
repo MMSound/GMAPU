@@ -5,6 +5,9 @@ GMAPU is a 100% pure GML system for playing back sample-based music in GameMaker
 
 FEATURES:
 - Mid-song volume and tempo changes
+- Volume fading and pitch control
+- Looping
+- Simple music format in the style of trackers
 - Up to as many sound channels as GameMaker can handle
 - Relatively performant (I think)
 - Playing, pausing, resuming, and stopping playback of music
