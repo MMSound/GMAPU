@@ -118,7 +118,7 @@ function GMAPU_init()
 }
 
 /// @description play a new song
-function GMAPU_playback_start(_song = noone)
+function GMAPU_playback_start(_song = noone, _rate = room_speed)
 {
 	with (objGMAPU)
 	{
@@ -131,6 +131,8 @@ function GMAPU_playback_start(_song = noone)
 			show_message("GMAPU - No song specified!");
 			exit;
 		}
+		
+		__clockRate = _rate;
 		
 		for (var i = 0; i < array_length(__channelInfo); i++)
 		{
@@ -273,7 +275,7 @@ function __GMAPU_update()
 	{
 		if (!__songInit)
 		{
-			time_source_reconfigure(__songClock, (__songSpeed / 60), time_source_units_seconds, __GMAPU_update, [], (array_length(__songData) - __songStep), time_source_expire_after);
+			time_source_reconfigure(__songClock, (__songSpeed / __clockRate), time_source_units_seconds, __GMAPU_update, [], (array_length(__songData) - __songStep), time_source_expire_after);
 			time_source_start(__songClock);
 			__songInit = true;
 		}
@@ -332,7 +334,7 @@ function __GMAPU_update()
 		if (__songData[__songStep][0][__GMAPU_TRACK_DATA.SPEED] != -1) //changing song speed mid-song
 		{
 			__songSpeed = __songData[__songStep][0][__GMAPU_TRACK_DATA.SPEED];
-			time_source_reconfigure(__songClock, (__songSpeed / 60), time_source_units_seconds, __GMAPU_update, [], (array_length(__songData) - __songStep), time_source_expire_after);
+			time_source_reconfigure(__songClock, (__songSpeed / __clockRate), time_source_units_seconds, __GMAPU_update, [], (array_length(__songData) - __songStep), time_source_expire_after);
 			time_source_start(__songClock);
 		}
 		

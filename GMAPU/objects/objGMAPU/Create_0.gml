@@ -8,6 +8,7 @@ __paused = false;
 
 __songStep = 0;
 __songClock = noone;
+__clockRate = room_speed;
 __songInit = false;
 __channelInfo = array_create(GMAPU_CHANNEL_COUNT, array_create(__GMAPU_SONG_DATA.LENGTH, -1));
 __songSpeed = 6;
